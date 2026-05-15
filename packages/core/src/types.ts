@@ -18,8 +18,18 @@
  */
 export type AgentLifecycle = '24/7' | 'on-demand' | 'idle_cached';
 
-/** Agent runtime backend */
-export type AgentRuntime = 'claude' | 'codex';
+/**
+ * Agent runtime backend.
+ *
+ * - `claude` — Anthropic Claude Code CLI (default)
+ * - `codex`  — OpenAI Codex CLI
+ * - `mojo_llm` — Mojo LLM 31B local inference adapter. Currently a
+ *   skeleton: the adapter scaffolding ships so MojoClaw / MojoAX can
+ *   target `engine.mojo_llm` via the Mojo Core SDK, but the actual
+ *   inference path is a stub pending a real Mojo LLM endpoint.
+ *   See ADR 0004 §3-C in the Mojo Core repo.
+ */
+export type AgentRuntime = 'claude' | 'codex' | 'mojo_llm';
 
 /** Codex reasoning effort / speed tier */
 export type CodexReasoningEffort = 'low' | 'medium' | 'high' | 'xhigh';

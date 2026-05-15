@@ -2,6 +2,7 @@ import type { ChildProcess } from 'child_process';
 import type { AgentDefinition, AgentRuntime, ModelTier } from '@wanman/core';
 import { ClaudeAdapter } from './claude-adapter.js';
 import { CodexAdapter } from './codex-adapter.js';
+import { MojoLlmAdapter } from './mojo-llm-adapter.js';
 
 export interface AgentRunEvent extends Record<string, unknown> {
   type: string;
@@ -61,7 +62,9 @@ export interface AgentAdapter {
 }
 
 export function normalizeAgentRuntime(value?: string | null): AgentRuntime {
-  return value === 'codex' ? 'codex' : 'claude';
+  if (value === 'codex') return 'codex';
+  if (value === 'mojo_llm') return 'mojo_llm';
+  return 'claude';
 }
 
 /**
@@ -90,12 +93,16 @@ const CLAUDE_MODEL_TIER: Record<string, ModelQuality> = {
 const FALLBACK_RUNTIME_MODEL_DEFAULTS: Record<AgentRuntime, Record<ModelQuality, string>> = {
   claude: { high: 'opus', standard: 'sonnet' },
   codex: { high: 'gpt-5.4', standard: 'gpt-5.4' },
+  // Mojo LLM exposes one tier today (31B). Both quality slots collapse
+  // to the same model name; future variants (e.g. mojo-llm-v06) will
+  // split the slots.
+  mojo_llm: { high: 'mojo-llm-31b', standard: 'mojo-llm-31b' },
 };
 
 function providerModelOverride(runtime: AgentRuntime): string | undefined {
-  return runtime === 'codex'
-    ? process.env['WANMAN_CODEX_MODEL']
-    : process.env['WANMAN_CLAUDE_MODEL'];
+  if (runtime === 'codex') return process.env['WANMAN_CODEX_MODEL'];
+  if (runtime === 'mojo_llm') return process.env['WANMAN_MOJO_LLM_MODEL'];
+  return process.env['WANMAN_CLAUDE_MODEL'];
 }
 
 function runtimeDefaultModel(runtime: AgentRuntime, tier: ModelQuality): string {
@@ -121,8 +128,7 @@ export function resolveAgentRuntime(definition: AgentDefinition): AgentRuntime {
 }
 
 export function createAgentAdapter(runtime: AgentRuntime): AgentAdapter {
-  if (runtime === 'codex') {
-    return new CodexAdapter();
-  }
+  if (runtime === 'codex') return new CodexAdapter();
+  if (runtime === 'mojo_llm') return new MojoLlmAdapter();
   return new ClaudeAdapter();
 }

@@ -11,7 +11,7 @@
  *   respawn with the steer message prepended (safest approach per design doc)
  */
 
-import type { AgentDefinition, AgentRuntime, AgentState } from '@wanman/core';
+import type { AgentDefinition, AgentState } from '@wanman/core';
 import {
   type AgentRunEvent,
   createAgentAdapter,
@@ -71,7 +71,7 @@ export function buildGoalPrompt(agentName: string, goal?: string): string | unde
   return `## Current Goal\n\nYour core objective is: ${goal}\n\n${taskInstruction}${langInstruction}`
 }
 
-function resolveCodexReasoningEffort(extraEnv: Record<string, string>, runtime: AgentRuntime): 'low' | 'medium' | 'high' | 'xhigh' | undefined {
+function resolveCodexReasoningEffort(extraEnv: Record<string, string>, runtime: 'claude' | 'codex'): 'low' | 'medium' | 'high' | 'xhigh' | undefined {
   if (runtime !== 'codex') return undefined;
   const raw = extraEnv['WANMAN_CODEX_REASONING_EFFORT'] ?? process.env['WANMAN_CODEX_REASONING_EFFORT'];
   switch (raw?.trim().toLowerCase()) {
@@ -85,7 +85,7 @@ function resolveCodexReasoningEffort(extraEnv: Record<string, string>, runtime: 
   }
 }
 
-function resolveCodexFast(extraEnv: Record<string, string>, runtime: AgentRuntime): boolean {
+function resolveCodexFast(extraEnv: Record<string, string>, runtime: 'claude' | 'codex'): boolean {
   if (runtime !== 'codex') return false;
   const raw = (extraEnv['WANMAN_CODEX_FAST'] ?? process.env['WANMAN_CODEX_FAST'] ?? '').trim().toLowerCase();
   return raw === '1' || raw === 'true' || raw === 'on' || raw === 'yes';
@@ -603,7 +603,7 @@ export class AgentProcess {
    * retry path so they apply the same time-budget and lifecycle rules.
    */
   private async runOneShot(opts: {
-    runtime: AgentRuntime;
+    runtime: 'claude' | 'codex';
     model: string;
     reasoningEffort: 'low' | 'medium' | 'high' | 'xhigh' | undefined;
     fast: boolean;

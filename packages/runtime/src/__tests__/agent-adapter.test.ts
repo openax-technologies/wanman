@@ -28,9 +28,6 @@ afterEach(() => {
   delete process.env['WANMAN_CODEX_MODEL'];
   delete process.env['WANMAN_CODEX_HIGH_MODEL'];
   delete process.env['WANMAN_CODEX_STANDARD_MODEL'];
-  delete process.env['WANMAN_MOJO_LLM_MODEL'];
-  delete process.env['WANMAN_MOJO_LLM_HIGH_MODEL'];
-  delete process.env['WANMAN_MOJO_LLM_STANDARD_MODEL'];
 });
 
 describe('agent-adapter', () => {
@@ -57,38 +54,6 @@ describe('agent-adapter', () => {
 
   it('creates a claude adapter', () => {
     expect(createAgentAdapter('claude').runtime).toBe('claude');
-  });
-
-  // ── Phase 44: Mojo LLM runtime ─────────────────────────────────────
-
-  it('normalizes "mojo_llm" through unchanged', () => {
-    expect(normalizeAgentRuntime('mojo_llm')).toBe('mojo_llm');
-  });
-
-  it('lets WANMAN_RUNTIME=mojo_llm override agent config', () => {
-    process.env['WANMAN_RUNTIME'] = 'mojo_llm';
-    expect(resolveAgentRuntime(makeDefinition({ runtime: 'claude' }))).toBe('mojo_llm');
-  });
-
-  it('creates a mojo_llm adapter', () => {
-    expect(createAgentAdapter('mojo_llm').runtime).toBe('mojo_llm');
-  });
-
-  it('resolves abstract tiers to mojo_llm defaults', () => {
-    expect(resolveModel('high', 'mojo_llm')).toBe('mojo-llm-31b');
-    expect(resolveModel('standard', 'mojo_llm')).toBe('mojo-llm-31b');
-  });
-
-  it('allows WANMAN_MOJO_LLM_MODEL override', () => {
-    process.env['WANMAN_MOJO_LLM_MODEL'] = 'mojo-llm-v06-candidate';
-    expect(resolveModel('high', 'mojo_llm')).toBe('mojo-llm-v06-candidate');
-  });
-
-  it('allows per-tier mojo_llm overrides', () => {
-    process.env['WANMAN_MOJO_LLM_HIGH_MODEL'] = 'mojo-llm-31b-instruct';
-    process.env['WANMAN_MOJO_LLM_STANDARD_MODEL'] = 'mojo-llm-8b';
-    expect(resolveModel('high', 'mojo_llm')).toBe('mojo-llm-31b-instruct');
-    expect(resolveModel('standard', 'mojo_llm')).toBe('mojo-llm-8b');
   });
 
   it('resolves abstract tiers to claude defaults', () => {
